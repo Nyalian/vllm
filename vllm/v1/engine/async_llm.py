@@ -122,7 +122,9 @@ class AsyncLLM(EngineClient):
         # OutputProcessor (converts EngineCoreOutputs --> RequestOutput).
         stream_interval = self.vllm_config.scheduler_config.stream_interval
         self.output_processor = OutputProcessor(
-            self.tokenizer, log_stats=self.log_stats, stream_interval=stream_interval
+            vllm_config=vllm_config,
+            tokenizer=self.tokenizer,
+            log_stats=self.log_stats,
         )
         endpoint = self.observability_config.otlp_traces_endpoint
         if endpoint is not None:

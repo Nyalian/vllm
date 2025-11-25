@@ -476,6 +476,7 @@ class EngineArgs:
     io_processor_plugin: str | None = None
     skip_mm_profiling: bool = MultiModalConfig.skip_mm_profiling
     video_pruning_rate: float = MultiModalConfig.video_pruning_rate
+    process_hidden_states: bool = ModelConfig.process_hidden_states
     # LoRA fields
     enable_lora: bool = False
     max_loras: int = LoRAConfig.max_loras
@@ -650,6 +651,8 @@ class EngineArgs:
         model_group.add_argument(
             "--served-model-name", **model_kwargs["served_model_name"]
         )
+        model_group.add_argument("--process-hidden-states",
+                                 **model_kwargs["process_hidden_states"])
         model_group.add_argument("--config-format", **model_kwargs["config_format"])
         # This one is a special case because it can bool
         # or str. TODO: Handle this in get_kwargs
@@ -1267,6 +1270,7 @@ class EngineArgs:
             enable_sleep_mode=self.enable_sleep_mode,
             model_impl=self.model_impl,
             override_attention_dtype=self.override_attention_dtype,
+            process_hidden_states=self.process_hidden_states,
             logits_processors=self.logits_processors,
             video_pruning_rate=self.video_pruning_rate,
             io_processor_plugin=self.io_processor_plugin,

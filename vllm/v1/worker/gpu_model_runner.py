@@ -180,6 +180,7 @@ class AsyncGPUModelRunnerOutput(AsyncModelRunnerOutput):
         invalid_req_indices: list[int],
         async_output_copy_stream: torch.cuda.Stream,
         vocab_size: int,
+        hidden_states: Optional[list[torch.Tensor]] = None
     ):
         self._model_runner_output = model_runner_output
         self._invalid_req_indices = invalid_req_indices
@@ -206,6 +207,8 @@ class AsyncGPUModelRunnerOutput(AsyncModelRunnerOutput):
                 else None
             )
             self.async_copy_ready_event.record()
+
+        self.hidden_states = hidden_states
 
     def get_output(self) -> ModelRunnerOutput:
         """Copy the device tensors to the host and return a ModelRunnerOutput.
@@ -2114,6 +2117,18 @@ class GPUModelRunner(
 
         return encoder_features
 
+    def _maybe_return_hidden_states(
+            self,
+            hidden_states: torch.Tensor,
+    ) -> list[torch.Tensor]:
+        final_hidden_states: list[torch.Tensor] = []
+        if self.vllm_config.model_config.process_hidden_states:
+            final_hidden_states = []
+            for hidden_state in hidden_states:
+                final_hidden_states.append(hidden_state.cpu())
+
+        return final_hidden_states
+
     def get_model(self) -> nn.Module:
         # get raw model out of the cudagraph wrapper.
         if isinstance(self.model, (CUDAGraphWrapper, UBatchWrapper)):
@@ -2269,6 +2284,9 @@ class GPUModelRunner(
             output = raw_output if seq_len == prompt_len else None
             pooler_output.append(output)
 
+        return_hidden_states = self._maybe_return_hidden_states(
+            hidden_states)
+
         return ModelRunnerOutput(
             req_ids=self.input_batch.req_ids,
             req_id_to_index=self.input_batch.req_id_to_index,
@@ -2276,6 +2294,7 @@ class GPUModelRunner(
             logprobs=None,
             prompt_logprobs_dict={},
             pooler_output=pooler_output,
+            hidden_states=return_hidden_states,
         )
 
     def _get_num_input_tokens(self, num_scheduled_tokens: int) -> int:
@@ -3021,6 +3040,7 @@ class GPUModelRunner(
                 if self.supports_mm_inputs
                 else None,
                 num_nans_in_logits=num_nans_in_logits,
+                hidden_states=self._maybe_return_hidden_states(hidden_states)
             )
 
         if not self.use_async_scheduling:
@@ -3035,6 +3055,7 @@ class GPUModelRunner(
                 invalid_req_indices=invalid_req_indices,
                 async_output_copy_stream=self.async_output_copy_stream,
                 vocab_size=self.input_batch.vocab_size,
+                hidden_states=self._maybe_return_hidden_states(hidden_states)
             )
         with record_function_or_nullcontext(
             "gpu_model_runner: set_async_sampled_token_ids"

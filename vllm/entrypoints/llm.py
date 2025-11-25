@@ -180,6 +180,9 @@ class LLM:
         compilation_config: Either an integer or a dictionary. If it is an
             integer, it is used as the mode of compilation optimization. If it
             is a dictionary, it can specify the full compilation configuration.
+        process_hidden_states: If True, it loads the hidden states processor
+            and to process the hiddne states for each request before returning
+            to the user.
         **kwargs: Arguments for [`EngineArgs`][vllm.EngineArgs].
 
     Note:
@@ -221,6 +224,7 @@ class LLM:
         kv_cache_memory_bytes: int | None = None,
         compilation_config: int | dict[str, Any] | CompilationConfig | None = None,
         logits_processors: list[str | type[LogitsProcessor]] | None = None,
+        process_hidden_states: bool = False,
         **kwargs: Any,
     ) -> None:
         """LLM constructor."""
@@ -333,6 +337,7 @@ class LLM:
             override_pooler_config=override_pooler_config,
             structured_outputs_config=structured_outputs_instance,
             compilation_config=compilation_config_instance,
+            process_hidden_states=process_hidden_states,
             logits_processors=logits_processors,
             **kwargs,
         )

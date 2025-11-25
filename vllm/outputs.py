@@ -4,7 +4,7 @@
 from collections.abc import MutableSequence
 from collections.abc import Sequence as GenericSequence
 from dataclasses import dataclass
-from typing import Any, Generic
+from typing import Any, Generic, Optional
 
 import torch
 from typing_extensions import TypeVar
@@ -46,11 +46,15 @@ class CompletionOutput:
     finish_reason: str | None = None
     stop_reason: int | str | None = None
     lora_request: LoRARequest | None = None
+    processed_hidden_states: Optional[Any] = None
+
 
     def finished(self) -> bool:
         return self.finish_reason is not None
 
     def __repr__(self) -> str:
+        hidden_states = ("None" if not self.processed_hidden_states else type(
+            self.processed_hidden_states).__name__)
         return (
             f"CompletionOutput(index={self.index}, "
             f"text={self.text!r}, "
@@ -58,7 +62,8 @@ class CompletionOutput:
             f"cumulative_logprob={self.cumulative_logprob}, "
             f"logprobs={self.logprobs}, "
             f"finish_reason={self.finish_reason}, "
-            f"stop_reason={self.stop_reason})"
+            f"stop_reason={self.stop_reason}, "
+            f"Processed hidden states={hidden_states})"
         )
 
 
@@ -71,14 +76,16 @@ class PoolingOutput:
     """
 
     data: torch.Tensor
+    processed_hidden_states: Optional[list[torch.Tensor]] = None
 
     def __repr__(self) -> str:
         return f"PoolingOutput(data={self.data})"
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__) and bool(
-            (self.data == other.data).all()
-        )
+        hidden_states = ("None" if not self.processed_hidden_states else type(
+            self.processed_hidden_states).__name__)
+        return (f"PoolingOutput(data={self.data}"
+                f"Processed hidden states={hidden_states})")
 
 
 class RequestOutput:

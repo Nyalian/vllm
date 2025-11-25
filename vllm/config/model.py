@@ -284,7 +284,8 @@ class ModelConfig:
     definitions"""
     io_processor_plugin: str | None = None
     """IOProcessor plugin name to load at model startup"""
-
+    process_hidden_states: bool = False
+    """Whether to process and return hidden states from the model."""
     # Pooler config
     pooler_config: PoolerConfig | None = None
     """Pooler config which controls the behaviour of output pooling in pooling

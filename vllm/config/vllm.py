@@ -1070,6 +1070,7 @@ class VllmConfig:
             f"enable_chunked_prefill={self.scheduler_config.enable_chunked_prefill}, "  # noqa
             f"pooler_config={self.model_config.pooler_config!r}, "
             f"compilation_config={self.compilation_config!r}"
+            f"process_hidden_states={self.model_config.process_hidden_states}"
         )
 
     @model_validator(mode="after")
