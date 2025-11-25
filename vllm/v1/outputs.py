@@ -3,7 +3,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, Optional
 
 import numpy as np
 import torch
@@ -180,6 +180,9 @@ class ModelRunnerOutput:
 
     # req_id -> num_nans_in_logits
     num_nans_in_logits: dict[str, int] | None = None
+
+    # This is used for pooling models that install a hidden states processor
+    hidden_states: dict[str,torch.Tensor] | torch.Tensor | None = None
 
 
 # ModelRunnerOutput wrapper for async scheduling.

@@ -1390,6 +1390,10 @@ environment_variables: dict[str, Callable[[], Any]] = {
     # This is useful for debugging and monitoring purposes.
     # The default value is "VLLM".
     "VLLM_PROCESS_NAME_PREFIX": lambda: os.getenv("VLLM_PROCESS_NAME_PREFIX", "VLLM"),
+    # Controls which hidden states processor plugin to load.
+    # This is used when more than a hidden states processor is installed
+    # to decide which one to use.
+    "VLLM_USE_HIDDEN_STATES_PROCESSOR": lambda: os.getenv("VLLM_USE_HIDDEN_STATES_PROCESSOR", None),
     # Allow chunked local attention with hybrid kv cache manager.
     # Currently using the Hybrid KV cache manager with chunked local attention
     # in the Llama4 models (the only models currently using chunked local attn)

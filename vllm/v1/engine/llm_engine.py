@@ -47,16 +47,16 @@ class LLMEngine:
     """Legacy LLMEngine for backwards compatibility."""
 
     def __init__(
-        self,
-        vllm_config: VllmConfig,
-        executor_class: type[Executor],
-        log_stats: bool,
-        aggregate_engine_logging: bool = False,
-        usage_context: UsageContext = UsageContext.ENGINE_CONTEXT,
-        stat_loggers: list[StatLoggerFactory] | None = None,
-        mm_registry: MultiModalRegistry = MULTIMODAL_REGISTRY,
-        use_cached_outputs: bool = False,
-        multiprocess_mode: bool = False,
+            self,
+            vllm_config: VllmConfig,
+            executor_class: type[Executor],
+            log_stats: bool,
+            aggregate_engine_logging: bool = False,
+            usage_context: UsageContext = UsageContext.ENGINE_CONTEXT,
+            stat_loggers: list[StatLoggerFactory] | None = None,
+            mm_registry: MultiModalRegistry = MULTIMODAL_REGISTRY,
+            use_cached_outputs: bool = False,
+            multiprocess_mode: bool = False,
     ) -> None:
         self.vllm_config = vllm_config
         self.observability_config = vllm_config.observability_config
@@ -68,15 +68,15 @@ class LLMEngine:
         executor_backend = self.vllm_config.parallel_config.distributed_executor_backend
         parallel_config = vllm_config.parallel_config
         self.external_launcher_dp = (
-            parallel_config.data_parallel_size > 1
-            and executor_backend == "external_launcher"
+                parallel_config.data_parallel_size > 1
+                and executor_backend == "external_launcher"
         )
         # important: init dp group before init the engine_core
         # In the decoupled engine case this is handled in EngineCoreProc.
         if (
-            not multiprocess_mode
-            and parallel_config.data_parallel_size > 1
-            and not self.external_launcher_dp
+                not multiprocess_mode
+                and parallel_config.data_parallel_size > 1
+                and not self.external_launcher_dp
         ):
             self.dp_group = parallel_config.stateless_init_dp_group()
         else:
@@ -97,7 +97,7 @@ class LLMEngine:
         # OutputProcessor (convert EngineCoreOutputs --> RequestOutput).
         stream_interval = self.vllm_config.scheduler_config.stream_interval
         self.output_processor = OutputProcessor(
-            self.tokenizer, log_stats=self.log_stats, stream_interval=stream_interval
+            vllm_config=vllm_config, tokenizer=self.tokenizer, log_stats=self.log_stats, stream_interval=stream_interval
         )
         endpoint = self.observability_config.otlp_traces_endpoint
         if endpoint is not None:
@@ -137,11 +137,11 @@ class LLMEngine:
 
     @classmethod
     def from_vllm_config(
-        cls,
-        vllm_config: VllmConfig,
-        usage_context: UsageContext = UsageContext.ENGINE_CONTEXT,
-        stat_loggers: list[StatLoggerFactory] | None = None,
-        disable_log_stats: bool = False,
+            cls,
+            vllm_config: VllmConfig,
+            usage_context: UsageContext = UsageContext.ENGINE_CONTEXT,
+            stat_loggers: list[StatLoggerFactory] | None = None,
+            disable_log_stats: bool = False,
     ) -> "LLMEngine":
         return cls(
             vllm_config=vllm_config,
@@ -154,11 +154,11 @@ class LLMEngine:
 
     @classmethod
     def from_engine_args(
-        cls,
-        engine_args: EngineArgs,
-        usage_context: UsageContext = UsageContext.ENGINE_CONTEXT,
-        stat_loggers: list[StatLoggerFactory] | None = None,
-        enable_multiprocessing: bool = False,
+            cls,
+            engine_args: EngineArgs,
+            usage_context: UsageContext = UsageContext.ENGINE_CONTEXT,
+            stat_loggers: list[StatLoggerFactory] | None = None,
+            enable_multiprocessing: bool = False,
     ) -> "LLMEngine":
         """Creates an LLM engine from the engine arguments."""
 
@@ -211,16 +211,16 @@ class LLMEngine:
         self.engine_core.abort_requests(request_ids)
 
     def add_request(
-        self,
-        request_id: str,
-        prompt: EngineCoreRequest | PromptType,
-        params: SamplingParams | PoolingParams,
-        arrival_time: float | None = None,
-        lora_request: LoRARequest | None = None,
-        tokenization_kwargs: dict[str, Any] | None = None,
-        trace_headers: Mapping[str, str] | None = None,
-        priority: int = 0,
-        prompt_text: str | None = None,
+            self,
+            request_id: str,
+            prompt: EngineCoreRequest | PromptType,
+            params: SamplingParams | PoolingParams,
+            arrival_time: float | None = None,
+            lora_request: LoRARequest | None = None,
+            tokenization_kwargs: dict[str, Any] | None = None,
+            trace_headers: Mapping[str, str] | None = None,
+            priority: int = 0,
+            prompt_text: str | None = None,
     ) -> None:
         # Validate the request_id type.
         if not isinstance(request_id, str):
@@ -389,11 +389,11 @@ class LLMEngine:
         return self.engine_core.pin_lora(lora_id)
 
     def collective_rpc(
-        self,
-        method: str | Callable[[WorkerBase], _R],
-        timeout: float | None = None,
-        args: tuple = (),
-        kwargs: dict[str, Any] | None = None,
+            self,
+            method: str | Callable[[WorkerBase], _R],
+            timeout: float | None = None,
+            args: tuple = (),
+            kwargs: dict[str, Any] | None = None,
     ) -> list[_R]:
         return self.engine_core.collective_rpc(method, timeout, args, kwargs)
 
@@ -402,7 +402,7 @@ class LLMEngine:
 
     def __del__(self):
         if (
-            dp_group := getattr(self, "dp_group", None)
-            and not self.external_launcher_dp
+                dp_group := getattr(self, "dp_group", None)
+                            and not self.external_launcher_dp
         ):
             stateless_destroy_torch_distributed_process_group(dp_group)
